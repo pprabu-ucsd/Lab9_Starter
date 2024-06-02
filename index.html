@@ -69,23 +69,32 @@
     </form>
 
     <section id="error-btns">
-      <button>Console Log</button>
-      <button>Console Error</button>
-      <button>Console Count</button>
-      <button>Console Warn</button>
-      <button>Console Assert</button>
-      <button>Console Clear</button>
-      <button>Console Dir</button>
-      <button>Console dirxml</button>
-      <button>Console Group Start</button>
-      <button>Console Group End</button>
-      <button>Console Table</button>
-      <button>Start Timer</button>
-      <button>End Timer</button>
-      <button>Console Trace</button>
-      <button>Trigger a Global Error</button>
+      <button id="log">Console Log</button>
+      <button id="error">Console Error</button>
+      <button id="count">Console Count</button>
+      <button id="warn">Console Warn</button>
+      <button id="assert">Console Assert</button>
+      <button id="clear">Console Clear</button>
+      <button id="dir">Console Dir</button>
+      <button id="dirxml">Console dirxml</button>
+      <button id="groupStart">Console Group Start</button>
+      <button id="groupEnd">Console Group End</button>
+      <button id="table">Console Table</button>
+      <button id="startTimer">Start Timer</button>
+      <button id="endTimer">End Timer</button>
+      <button id="trace">Console Trace</button>
+      <button id="globalError">Trigger a Global Error</button>
     </section>
   </main>
+
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "2b184936a89644cd98f132efe4b61ac2",
+      application: "lab-9"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>     
 
   <script>
     let form = document.querySelector('form');
@@ -95,13 +104,71 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      try {
+        if (firstNum === '' || secondNum === '') throw new Error('Both numbers are required');
+        if (isNaN(firstNum) || isNaN(secondNum)) throw new Error('Both inputs must be numbers');
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (error) {
+        output.innerHTML = error.message;
+        console.error(error.message);
+      }
     });
 
-    let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+    let buttons = {
+      log: () => console.log('This is an example log message'),
+      error: () => console.error('This is an example error message'),
+      count: () => console.count('Count button clicked'),
+      warn: () => console.warn('This is an example warning message'),
+      assert: () => console.assert(false, 'This is an example assertion failure message'),
+      clear: () => console.clear(),
+      dir: () => console.dir(document.body),
+      dirxml: () => console.dirxml(document),
+      groupStart: () => {
+        console.group('Grouped messages');
+        console.log('First message in group');
+        console.log('Second message in group');
+      },
+      groupEnd: () => console.groupEnd(),
+      table: () => console.table([{ a: 1, b: 'Y' }, { a: 'Z', b: 2 }]),
+      startTimer: () => console.time('Timer Start'),
+      endTimer: () => console.timeEnd('Timer End'),
+      trace: () => console.trace('Trace message'),
+      globalError: () => triggerGlobalError()
+    };
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    document.querySelectorAll('#error-btns > button').forEach(button => {
+      let id = button.id;
+      button.addEventListener('click', buttons[id]);
+    });
+
+    function triggerGlobalError() {
+      class ErrorTrack extends Error {
+        constructor(message) {
+          super(message);
+          this.name = "ErrorTrack";
+        }
+      }
+      try {
+        throw new ErrorTrack("ErrorTrack has been thrown");
+        TrackJS.track('Testing TrackJS!');
+      } catch (error) {
+        console.error('Global error triggered:', error);
+      }
+    }
+
+    class CustomError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CustomError';
+      }
+    }
+
+    // Example usage of CustomError
+    try {
+      throw new CustomError('This is an example custom error');
+    } catch (error) {
+      console.error(error.name + ': ' + error.message);
+    }
   </script>
 </body>
 
